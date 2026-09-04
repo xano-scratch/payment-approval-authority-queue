@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Approval Authority Queue, a governed Xano backend</title>
+    <meta
+      name="description"
+      content="A governed payments approval backend where routing, authority limits, and segregation of duties are enforced at the API layer. A Xano Play 3 proof artifact for financial services."
+    />
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: #161616;
+        --border: rgba(255, 255, 255, 0.1);
+        --fg: #fafafa;
+        --muted: #a1a1aa;
+        --accent: #10b981;
+        --accent-soft: rgba(16, 185, 129, 0.12);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: var(--bg);
+        color: var(--fg);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      code, pre {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.86rem;
+      }
+      header { padding: 72px 0 40px; border-bottom: 1px solid var(--border); }
+      .logo {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 52px; height: 52px; border-radius: 14px;
+        background: var(--accent-soft); color: var(--accent); margin-bottom: 22px;
+      }
+      h1 { font-size: 2.4rem; line-height: 1.15; letter-spacing: -0.02em; font-weight: 700; }
+      .tagline { font-size: 1.18rem; color: var(--muted); margin-top: 16px; max-width: 40rem; }
+      .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.78rem; font-weight: 500; padding: 5px 11px; border-radius: 999px;
+        border: 1px solid var(--border); background: var(--card); color: var(--fg);
+      }
+      .badge.accent { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+      .meta { margin-top: 20px; color: var(--muted); font-size: 0.92rem; }
+      .meta strong { color: var(--fg); font-weight: 600; }
+      .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 0.95rem; font-weight: 600; padding: 11px 20px; border-radius: 10px;
+        border: 1px solid transparent; transition: filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      }
+      .btn:hover { text-decoration: none; }
+      .btn.primary { background: var(--accent); color: #04140d; border-color: var(--accent); }
+      .btn.primary:hover { filter: brightness(1.08); }
+      .btn.ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+      .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+      .shot {
+        margin: 40px 0; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      }
+      .shot img { display: block; width: 100%; height: auto; }
+      section { padding: 44px 0; border-bottom: 1px solid var(--border); }
+      h2 { font-size: 1.4rem; letter-spacing: -0.01em; margin-bottom: 8px; }
+      .lead { color: var(--muted); margin-bottom: 22px; max-width: 46rem; }
+      pre {
+        background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+        padding: 18px 20px; overflow-x: auto; color: var(--fg); line-height: 1.7;
+      }
+      pre .c { color: var(--muted); }
+      table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 4px; }
+      th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+      th { color: var(--muted); font-weight: 500; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      td.verb { font-family: ui-monospace, monospace; color: var(--accent); white-space: nowrap; }
+      td.path { font-family: ui-monospace, monospace; white-space: nowrap; }
+      .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 6px; }
+      .cardbox { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+      .cardbox h3 { font-size: 1rem; margin-bottom: 6px; }
+      .cardbox p { color: var(--muted); font-size: 0.9rem; }
+      .note {
+        background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+        border-radius: 8px; padding: 16px 20px; color: var(--muted); font-size: 0.92rem;
+      }
+      footer { padding: 40px 0 72px; color: var(--muted); font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <div class="logo" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+        </div>
+        <h1>Payment Approval Authority Queue</h1>
+        <p class="tagline">
+          A governed payments approval backend where routing, per approver authority limits, and
+          segregation of duties are enforced at the API layer, not in the frontend.
+        </p>
+        <div class="badges">
+          <span class="badge accent">Play 3 · Pilot to Production</span>
+          <span class="badge">Financial services</span>
+          <span class="badge">API layer RBAC</span>
+          <span class="badge">Versioned audit trail</span>
+        </div>
+        <p class="meta"><strong>5 tables</strong> · <strong>8 API endpoints</strong> · native <code>@xanots/sdk</code> auth · runs on seed data</p>
+        <div class="hero-actions">
+          <a class="btn primary" href="https://github.com/xano-scratch/payment-approval-authority-queue">View on GitHub</a>
+          <a class="btn ghost" href="#use">Use this template</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div class="shot">
+        <img src="./screenshot.png" alt="The request detail screen showing the governed outcome, the policy band that fired, and the full audit trail" />
+      </div>
+    </div>
+
+    <section>
+      <div class="wrap">
+        <h2>What it proves</h2>
+        <p class="lead">
+          This is the governed backend that would sit under a plausible AI generated internal accounts
+          payable tool. A generated frontend can render any button. The server still routes every request
+          by amount to the right tier, checks every approval against the approver's own authority limit,
+          and refuses a self approval. An over limit sign off or a self approval is rejected by the API
+          even when driven directly, and every decision is logged with the rule version that applied.
+        </p>
+        <p class="lead">
+          The value for a technical evaluator is that the control lives in one readable, versioned API
+          layer they can point at and approve. That is what makes an AI built approval tool safe to run in
+          production. Access control is API layer RBAC (an auth table, tokens, and per endpoint
+          preconditions), not row level security.
+        </p>
+      </div>
+    </section>
+
+    <section id="use">
+      <div class="wrap">
+        <h2>Use this template</h2>
+        <p class="lead">Paste this to an agent, or run the steps yourself.</p>
+        <pre><span class="c"># Clone and deploy this Xano template, then load the demo data.</span>
+git clone https://github.com/xano-scratch/payment-approval-authority-queue
+cd payment-approval-authority-queue
+npm install
+npx xanots login          <span class="c"># one time, authenticate with Xano</span>
+npm run xano:deploy       <span class="c"># deploys backend + frontend, prints the live URL</span>
+<span class="c"># open the printed URL, click "Load demo data", sign in (password: password123)</span></pre>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>API surface</h2>
+        <p class="lead">Served under the pinned group slug, so the public prefix is <code>/api:api</code>.</p>
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Path</th><th>What it enforces</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="verb">POST</td><td class="path">/auth/login</td><td>Checks the password server side and mints an auth token</td></tr>
+            <tr><td class="verb">POST</td><td class="path">/payments/submit</td><td>Routes by amount and pins the policy version to the trail</td></tr>
+            <tr><td class="verb">GET</td><td class="path">/payments/queue</td><td>Returns only the requests within the caller's authority</td></tr>
+            <tr><td class="verb">GET</td><td class="path">/payments/get/{id}</td><td>One request with its steps, trail, and the policy band</td></tr>
+            <tr><td class="verb">POST</td><td class="path">/payments/approve</td><td>Checks role, authority limit, and segregation of duties</td></tr>
+            <tr><td class="verb">POST</td><td class="path">/payments/reject</td><td>Records a rejection with a reason</td></tr>
+            <tr><td class="verb">POST</td><td class="path">/payments/escalate</td><td>Raises a request past a limited approver</td></tr>
+            <tr><td class="verb">POST</td><td class="path">/seed</td><td>Resets and loads the demo data</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>The screens</h2>
+        <div class="grid">
+          <div class="cardbox"><h3>Persona sign in</h3><p>Pick a requester, a limited approver, a senior approver, or an admin, and act as that role.</p></div>
+          <div class="cardbox"><h3>Submit request</h3><p>Enter a vendor and amount, and see the tier and authority the policy routes it to.</p></div>
+          <div class="cardbox"><h3>Approval queue</h3><p>The requests within the caller's authority, scoped on the server.</p></div>
+          <div class="cardbox"><h3>Request detail</h3><p>The steps, the policy band and version, and the full audit trail.</p></div>
+          <div class="cardbox"><h3>Governance demo</h3><p>Attempt an over limit approval and a self approval, and read the API rejection.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Live preview</h2>
+        <p class="note">
+          The generated app deploys to a short lived ephemeral environment, so any live link is temporary
+          and expires. The durable artifact is this repo. Clone it and run <code>npm run xano:deploy</code>
+          to get your own live backend and frontend with fresh links in about a minute.
+        </p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        Built with <a href="https://www.npmjs.com/package/@xanots/sdk">@xanots/sdk</a>. A Xano proof
+        artifact, not a production customer reference.
+      </div>
+    </footer>
+  </body>
+</html>

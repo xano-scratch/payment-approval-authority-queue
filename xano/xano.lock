@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "objects": {
+    "app:api": {
+      "guid": "97f0711bb56c294a5e5eb163854b1b15",
+      "canonical": "api",
+      "canonical_source": "code"
+    },
+    "dbo:approval_events": {
+      "guid": "e5ee4b5e779152e57031ca0e368100ca"
+    },
+    "dbo:approval_policies": {
+      "guid": "632d6668acecfb60568e009b0fd1599c"
+    },
+    "dbo:approval_steps": {
+      "guid": "c807db7a5cd7c048e1a85df58d7af6e0"
+    },
+    "dbo:payment_requests": {
+      "guid": "09ff5daa2437b61755b4b9138863436f"
+    },
+    "dbo:users": {
+      "guid": "157d4a98d979cf04b9ccdb98dfc15229"
+    },
+    "query:api|GET|payments/get/{id}": {
+      "guid": "8e98e154c42da91ce57efc951d119f74"
+    },
+    "query:api|GET|payments/queue": {
+      "guid": "bc6b6283716c1bce47bdff6dbc1d56ea"
+    },
+    "query:api|POST|auth/login": {
+      "guid": "329faca22b8ee7ca58cdae337a6c292a"
+    },
+    "query:api|POST|payments/approve": {
+      "guid": "3d1526546ef8958df930fdba239135d6"
+    },
+    "query:api|POST|payments/escalate": {
+      "guid": "7844781fa0572e07de2b59320d20b95b"
+    },
+    "query:api|POST|payments/reject": {
+      "guid": "8d0f22ef3cf996bee88a4653bb1d8e3b"
+    },
+    "query:api|POST|payments/submit": {
+      "guid": "6cb43d65ca2568e31a4b3c7e38b6daed"
+    },
+    "query:api|POST|seed": {
+      "guid": "b41b4e10fb486aadcfcc362b94d2c8a1"
+    }
+  }
+}
